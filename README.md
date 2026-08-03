@@ -16,7 +16,16 @@ git clone git@github.com:Polardong66/deep-read-canvas.git ~/.workbuddy/skills/de
 
 ### 2. 配置微信读书 API Key
 
-在微信读书开放平台获取 API Key（格式 `wrk-xxxxxxxx`），任选一种方式配置：
+**获取 API Key：**
+
+1. 打开 [微信读书 Skill 配置页](https://weread.qq.com/r/weread-skills)
+2. 点击「快速配置」，扫码登录微信读书账号
+3. 页面会生成一串 `wrk-` 开头的 API Key，点击复制
+4. ⚠️ Key 绑定你的个人账号，请勿泄露给他人
+
+> 除非主动重置，Key 长期有效。
+
+**配置 API Key（二选一）：**
 
 **方式一：环境变量（当前终端有效）**
 
