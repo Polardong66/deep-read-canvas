@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《本体驱动的AI数据管理》精读分析报告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #2563EB;
+  --color-primary-light: #DBEAFE;
+  --color-accent: #059669;
+  --color-accent-light: #D1FAE5;
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F8FAFC;
+  --color-text: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-border: #E2E8F0;
+  --color-cover-bg: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #F0FDF4 100%);
+  --color-card-bg: #FFFFFF;
+  --color-quote-bg: #F0FDF4;
+  --color-highlight-bg: #EFF6FF;
+  --font-heading: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif;
+  --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --slide-width: min(1100px, 94vw);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.75;
+  font-size: 22px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  text-wrap: pretty;
+}
+
+/* ── Slide Container ── */
+#slide-container {
+  width: 100vw; height: 100vh;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-alt);
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(0.97);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+  overflow-y: auto;
+  padding: 60px 20px 100px;
+}
+.slide.active {
+  opacity: 1; transform: scale(1);
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.slide-inner {
+  width: var(--slide-width);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── Cover special ── */
+.slide-cover {
+  flex-direction: column;
+  text-align: center;
+  background: var(--color-cover-bg);
+}
+.slide-cover .slide-inner { max-width: 800px; }
+.slide-cover h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+.slide-cover .subtitle {
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+.slide-cover .meta {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+}
+.slide-cover .cover-icon {
+  font-size: 3rem; margin-bottom: 24px; opacity: 0.7;
+}
+
+/* ── Part Transition ── */
+.slide-part {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1D4ED8 100%);
+  color: #fff;
+  text-align: center;
+}
+.slide-part .part-num {
+  font-family: var(--font-heading);
+  font-size: 7rem;
+  font-weight: 700;
+  opacity: 0.1;
+  line-height: 1;
+  margin-bottom: -20px;
+}
+.slide-part h2 {
+  color: #fff;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  margin-bottom: 12px;
+}
+.slide-part .part-desc {
+  color: rgba(255,255,255,0.75);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Content Typography ── */
+h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 18px;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 24px 0 12px;
+  text-wrap: balance;
+}
+h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+p {
+  margin-bottom: 14px;
+  color: var(--color-text-secondary);
+  text-align: justify;
+  font-size: 22px;
+}
+strong { color: var(--color-text); }
+
+/* ── Divider ── */
+.divider {
+  width: 50px; height: 3px;
+  background: var(--color-accent);
+  border-radius: 2px;
+  margin: 0 0 24px;
+}
+
+/* ── Cards ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 22px 20px;
+  transition: all 0.25s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  border-color: var(--color-primary);
+}
+.card-num {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  opacity: 0.5;
+  line-height: 1;
+}
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 8px 0;
+}
+.card-desc {
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+/* ── 2-column ── */
+.col-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 16px 0;
+}
+
+/* ── Quote ── */
+blockquote {
+  background: var(--color-quote-bg);
+  border-left: 4px solid var(--color-accent);
+  padding: 18px 24px;
+  margin: 20px 0;
+  border-radius: 0 10px 10px 0;
+  color: var(--color-text);
+  font-size: 20px;
+  line-height: 1.7;
+}
+blockquote .quote-author {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ── Highlight ── */
+.highlight-card {
+  background: var(--color-highlight-bg);
+  border: 1px solid var(--color-primary-light);
+  border-radius: 10px;
+  padding: 14px 18px 14px 18px;
+  margin: 12px 0;
+  position: relative;
+  font-size: 20px;
+  color: var(--color-text);
+}
+.highlight-card .hl-badge {
+  position: absolute;
+  top: -10px; right: 12px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* ── Table ── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.compare-table th {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+}
+.compare-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:nth-child(even) { background: var(--color-bg-alt); }
+
+/* ── Process Flow ── */
+.process-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+.process-step {
+  text-align: center;
+  min-width: 80px;
+}
+.process-step .step-icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 auto 8px;
+}
+.process-step .step-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.process-arrow {
+  font-size: 1.3rem;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* ── SVG Container ── */
+.kg-container {
+  width: 100%;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  padding: 12px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+.kg-container svg { width: 100%; height: auto; display: block; }
+
+/* ── Summary grid ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+.summary-item {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 24px 16px;
+  text-align: center;
+}
+.summary-item .s-num {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 1;
+}
+.summary-item .s-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ── Flow SVG ── */
+.flow-svg {
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  margin: 16px 0;
+}
+
+/* ── Navigation Bar ── */
+#nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+  padding: 0 24px;
+}
+
+#nav-bar button {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text);
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+#nav-bar button:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+#nav-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+#nav-bar button:disabled:hover {
+  background: #fff;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+#page-indicator {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* ── Dots ── */
+#dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.dot.active {
+  background: var(--color-primary);
+  width: 24px;
+  border-radius: 4px;
+}
+.dot.part-dot {
+  width: 8px; height: 8px;
+  background: var(--color-accent);
+  opacity: 0.4;
+  border-radius: 50%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .col-2 { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .slide { padding: 32px 16px 90px; }
+  #nav-bar { gap: 8px; padding: 0 12px; }
+  #nav-bar button { padding: 8px 14px; font-size: 13px; }
+  .compare-table { font-size: 11px; }
+  .compare-table th, .compare-table td { padding: 8px 10px; }
+  h2 { font-size: 1.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="slide-container">
+
+<!-- ====== SLIDE 1: Cover ====== -->
+<div class="slide slide-cover active" data-slide="0">
+  <div class="slide-inner">
+    <div class="cover-icon">📖</div>
+    <h1>本体驱动的<br>AI 数据管理</h1>
+    <p class="subtitle">当数据的主要消费者从「人」变成「机器」时，<br>如何让 AI Agent 真正懂业务？</p>
+    <p class="meta">华为数字化转型与 AI 应用实践经验 · 2026 年出版 · 评分 84.6</p>
+    <p class="meta" style="margin-top:6px;">《本体驱动的AI数据管理》编写组 著</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 2: Overview ====== -->
+<div class="slide" data-slide="1">
+  <div class="slide-inner">
+    <h4>全局总览</h4>
+    <h2>全书知识图谱</h2>
+    <div class="divider"></div>
+    <div class="kg-container">
+      <svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.06"/></filter>
+        </defs>
+        <rect width="960" height="420" fill="#F8FAFC" rx="12"/>
+        <g filter="url(#shadow)">
+          <rect x="370" y="165" width="220" height="60" rx="30" fill="#2563EB"/>
+          <text x="480" y="192" text-anchor="middle" fill="#fff" font-family="serif" font-size="15" font-weight="700">业务本体</text>
+          <text x="480" y="210" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11">事实 · 事理 · 行动</text>
+        </g>
+        <g filter="url(#shadow)"><rect x="20" y="20" width="190" height="115" rx="12" fill="#fff" stroke="#2563EB" stroke-width="1.5"/><rect x="20" y="20" width="190" height="28" rx="12" fill="#2563EB"/><rect x="20" y="38" width="190" height="10" fill="#2563EB"/><text x="115" y="40" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">战略认知篇</text><text x="115" y="66" text-anchor="middle" fill="#2563EB" font-size="11">业务逻辑 · 数据治理</text><text x="115" y="84" text-anchor="middle" fill="#64748B" font-size="10">结构化表达</text><text x="115" y="104" text-anchor="middle" fill="#059669" font-size="10" font-weight="600">第1-3章</text></g>
+        <g filter="url(#shadow)"><rect x="20" y="160" width="190" height="115" rx="12" fill="#fff" stroke="#2563EB" stroke-width="1.5"/><rect x="20" y="160" width="190" height="28" rx="12" fill="#2563EB"/><rect x="20" y="178" width="190" height="10" fill="#2563EB"/><text x="115" y="180" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">核心理论篇</text><text x="115" y="206" text-anchor="middle" fill="#2563EB" font-size="11">本体论 · 哲学→AI</text><text x="115" y="224" text-anchor="middle" fill="#64748B" font-size="10">符号+联结 · 7+1规范</text><text x="115" y="244" text-anchor="middle" fill="#059669" font-size="10" font-weight="600">第4-5章</text></g>
+        <g filter="url(#shadow)"><rect x="750" y="160" width="190" height="115" rx="12" fill="#fff" stroke="#2563EB" stroke-width="1.5"/><rect x="750" y="160" width="190" height="28" rx="12" fill="#2563EB"/><rect x="750" y="178" width="190" height="10" fill="#2563EB"/><text x="845" y="180" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">落地实施篇</text><text x="845" y="206" text-anchor="middle" fill="#2563EB" font-size="11">工程化 · 29句话</text><text x="845" y="224" text-anchor="middle" fill="#64748B" font-size="10">AI Agent · 应用场景</text><text x="845" y="244" text-anchor="middle" fill="#059669" font-size="10" font-weight="600">第6-8章</text></g>
+        <g filter="url(#shadow)"><rect x="750" y="20" width="190" height="115" rx="12" fill="#fff" stroke="#2563EB" stroke-width="1.5"/><rect x="750" y="20" width="190" height="28" rx="12" fill="#2563EB"/><rect x="750" y="38" width="190" height="10" fill="#2563EB"/><text x="845" y="40" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">未来展望篇</text><text x="845" y="66" text-anchor="middle" fill="#2563EB" font-size="11">碳硅协同</text><text x="845" y="84" text-anchor="middle" fill="#64748B" font-size="10">人控→智控</text><text x="845" y="104" text-anchor="middle" fill="#059669" font-size="10" font-weight="600">第9-10章</text></g>
+        <line x1="210" y1="78" x2="368" y2="182" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="210" y1="218" x2="368" y2="200" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="592" y1="200" x2="748" y2="218" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="592" y1="190" x2="748" y2="88" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <g filter="url(#shadow)"><rect x="180" y="320" width="600" height="70" rx="12" fill="#fff" stroke="#059669" stroke-width="1.5"/><text x="480" y="346" text-anchor="middle" fill="#059669" font-size="12" font-weight="700">方法论核心：「7+1」语义规范 → 「事实-事理-行动」→ 五环联动</text><text x="480" y="366" text-anchor="middle" fill="#64748B" font-size="11">RDF · OWL · SKOS · SWRL · OWL-S · ODRL · SPARQL + 目标评估</text></g>
+        <line x1="480" y1="226" x2="480" y2="318" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+      </svg>
+    </div>
+    <div class="summary-grid" style="margin-top:12px;">
+      <div class="summary-item"><div class="s-num">4 篇</div><div class="s-label">战略认知→理论→实施→展望</div></div>
+      <div class="summary-item"><div class="s-num">10 章</div><div class="s-label">从「为什么」到「走向何方」</div></div>
+      <div class="summary-item"><div class="s-num">84.6</div><div class="s-label">微信读书评分 · 39人评价</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 3: Part 1 Transition ====== -->
+<div class="slide slide-part" data-slide="2">
+  <div class="slide-inner">
+    <div class="part-num">I</div>
+    <h2>战略认知篇</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:16px;">第 1 — 3 章</p>
+    <p class="part-desc">剖析智能时代企业管理跃迁的本质逻辑，阐述数据治理从「面向人的业务记录」向「面向AI的业务建模」转型的必然性，提出以业务本体为纽带构筑人机协同的认知底座。</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 4: Ch1 ====== -->
+<div class="slide" data-slide="3">
+  <div class="slide-inner">
+    <h4>第 1 章</h4>
+    <h2>智能时代重构业务管理逻辑</h2>
+    <div class="divider"></div>
+    <div class="col-2">
+      <div>
+        <h3>Token 取代比特：信息处理的范式跃迁</h3>
+        <p>传统信息系统的处理单元是「比特」——语义由人类在代码层预设。大模型时代则变为「Token」——携带上下文语义的向量化信息载体。这一转变使数据从「需要人类翻译」变为「自带语义」。</p>
+      </div>
+      <div>
+        <h3>Agentic AI 成为业务新主体</h3>
+        <p>AI 从被动应答的「工具」进化为具备自主规划、环境感知与执行能力的「智能体」。数据基础设施必须支撑AI Agent 在复杂场景中的自主推理与闭环决策。</p>
+      </div>
+    </div>
+    <h3>数据角色的三重进化</h3>
+    <p>数据从单纯的「业务记录」变为驱动智能体进化的<strong>「燃料」</strong>→ 成为连接业务与智能体的<strong>「纽带」</strong>→ 最终成为业务事实与事理的<strong>「完整载体」</strong>，不再只描述「发生了什么」，更承载「为什么会发生」「应该怎么做」。</p>
+    <blockquote>「建模思维」正成为人与智能体协同的关键能力——业务人员需学会将隐性知识显性化为AI可理解的模型，这正是本体方法论的核心。<div class="quote-author">—— 第1章核心论述</div></blockquote>
+  </div>
+</div>
+
+<!-- ====== SLIDE 5: Ch2 ====== -->
+<div class="slide" data-slide="4">
+  <div class="slide-inner">
+    <h4>第 2 章</h4>
+    <h2>智能时代驱动数据治理重塑</h2>
+    <div class="divider"></div>
+    <div class="col-2">
+      <div>
+        <h3>传统治理的三大局限</h3>
+        <p><strong>元数据止于描述：</strong>记录表结构、血缘关系，无法表达业务含义与推理规则。<strong>标准缺乏语义深度：</strong>命名规范、格式约束，缺少跨域语义对齐。<strong>目标偏向合规而非赋能：</strong>以合规审计为驱动，而非「让AI有效利用数据」。</p>
+      </div>
+      <div>
+        <h3>面向AI的四项新要求</h3>
+        <p><strong>语义一致性</strong>——跨系统在统一语义框架下对齐；<strong>可推理</strong>——关系与规则可被机器自动推理；<strong>动态可演进</strong>——随业务自适应更新；<strong>AI原生</strong>——从设计之初就服务AI推理和决策。</p>
+      </div>
+    </div>
+    <div class="flow-svg">
+      <svg viewBox="0 0 850 90" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+        <rect width="850" height="90" fill="#F8FAFC" rx="8"/>
+        <rect x="20" y="22" width="170" height="46" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+        <text x="105" y="42" text-anchor="middle" fill="#2563EB" font-size="13" font-weight="700">管好数据</text>
+        <text x="105" y="58" text-anchor="middle" fill="#64748B" font-size="10">质量 · 合规 · 资产化</text>
+        <text x="240" y="48" text-anchor="middle" fill="#059669" font-size="22" font-weight="700">→</text>
+        <rect x="280" y="22" width="170" height="46" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+        <text x="365" y="42" text-anchor="middle" fill="#2563EB" font-size="13" font-weight="700">用好数据</text>
+        <text x="365" y="58" text-anchor="middle" fill="#64748B" font-size="10">消费 · 训练 · 决策支撑</text>
+        <text x="500" y="48" text-anchor="middle" fill="#059669" font-size="22" font-weight="700">→</text>
+        <rect x="540" y="22" width="180" height="46" rx="8" fill="#2563EB"/>
+        <text x="630" y="42" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">让数据生智</text>
+        <text x="630" y="58" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="10">AI自主推理 · 闭环决策</text>
+        <text x="790" y="48" text-anchor="middle" fill="#64748B" font-size="11">▲本书终极目标</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 6: Ch3 ====== -->
+<div class="slide" data-slide="5">
+  <div class="slide-inner">
+    <h4>第 3 章</h4>
+    <h2>破局之道：统一结构化表达</h2>
+    <div class="divider"></div>
+    <div class="highlight-card"><span class="hl-badge">899人划线</span>「本体为AI提供严格类型的事实接口，相当于给AI装上了标准化的感知器官。」</div>
+    <div class="col-2">
+      <div>
+        <h3>「头脑内核」——理性思维层</h3>
+        <p>业务规则以自然语言表达：如「抽穗期禁用高毒农药，湿度＞70%时需在48小时内施药」。本体定义了决策的推理框架。</p>
+      </div>
+      <div>
+        <h3>「感官起点」——环境感知层</h3>
+        <p>将多源异构数据整合为结构化事实：如「地块A虫口密度超标，作物处于抽穗期」。使AI能像人一样「感知」业务状态。</p>
+      </div>
+    </div>
+    <blockquote>本体为人和AI提供了共享的语义认知框架——业务人员的隐性知识可被形式化表达，AI的推理过程也变得可解释和可审计。这不是替代人的判断，而是赋能人以更强的分析能力和决策支撑。<div class="quote-author">—— 第3章核心论述 · 865人划线认同</div></blockquote>
+  </div>
+</div>
+
+<!-- ====== SLIDE 7: Part 2 Transition ====== -->
+<div class="slide slide-part" data-slide="6">
+  <div class="slide-inner">
+    <div class="part-num">II</div>
+    <h2>核心理论篇</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:16px;">第 4 — 5 章</p>
+    <p class="part-desc">系统阐述本体的思想渊源与理论体系，从哲学本源到计算科学演进，提出「事实–事理–行动」一体化动态模型与「7+1」语义规范，构建面向AI的数据资产管理体系。</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 8: Ch4 ====== -->
+<div class="slide" data-slide="7">
+  <div class="slide-inner">
+    <h4>第 4 章</h4>
+    <h2>本体：从哲学概念到驱动智能演进</h2>
+    <div class="divider"></div>
+    <p>本章从古希腊哲学的「本体论」讲起，追溯本体概念从「存在之问」到计算机科学中的「概念化规范」（Gruber, 1993），再到AI领域「语义推理引擎」的演进——纵贯两千年的思想线索，为理解本体在AI中的角色提供深厚理论根基。</p>
+    <div class="col-2">
+      <div>
+        <h3>「事实-事理-行动」模型</h3>
+        <p>全书最具原创性的贡献。传统「对象-属性-关系」范式只能「知道有什么」。FRA模型让AI Agent<strong>「知道为什么」和「知道怎么做」</strong>——事实描述当前状态，事理编码业务规则，行动定义可执行操作。</p>
+      </div>
+      <div>
+        <h3>联结主义 + 符号主义</h3>
+        <p>大模型（联结主义）在企业场景面临可解释、可审计、可控三大刚需。本体的符号框架为大模型提供<strong>确定性的语义约束</strong>，充当推理「脚手架」——这是企业AI落地的关键路径。</p>
+      </div>
+    </div>
+    <div class="highlight-card"><span class="hl-badge">903人划线</span>「关系数据以三元组（节点–关系–节点）为基础单元，支撑AI理解业务逻辑关联。」</div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 9: Ch5 ====== -->
+<div class="slide" data-slide="8">
+  <div class="slide-inner">
+    <h4>第 5 章</h4>
+    <h2>基于本体的企业 AI 数据管理体系</h2>
+    <div class="divider"></div>
+    <h3>三类资产目录：作业 · 分析 · AI</h3>
+    <p>同一数据对象在三种目录中的描述、标准、策略应不同。面向<strong>作业</strong>关注准确性和时效，面向<strong>分析</strong>关注维度建模，面向<strong>AI</strong>关注语义标注和特征适配——这是最具实操价值的分类框架。</p>
+    <h3>「7+1」语义规范</h3>
+    <table class="compare-table">
+      <tr><th>规范</th><th>核心功能</th><th>AI 数据管理角色</th></tr>
+      <tr><td><strong>RDF</strong></td><td>三元组业务资源表达</td><td>AI理解业务实体</td></tr>
+      <tr><td><strong>OWL</strong></td><td>跨域概念统一，消除歧义</td><td>推理一致性保障</td></tr>
+      <tr><td><strong>SKOS</strong></td><td>基础术语、同义词/层级</td><td>语义基础，消除术语混淆</td></tr>
+      <tr><td><strong>SWRL</strong></td><td>跨域业务逻辑规则</td><td>自主决策规则引擎</td></tr>
+      <tr><td><strong>OWL-S</strong></td><td>业务流程逻辑串联</td><td>任务框架搭建</td></tr>
+      <tr><td><strong>ODRL</strong></td><td>数据操作权限定义</td><td>安全边界守护</td></tr>
+      <tr><td><strong>SPARQL</strong></td><td>语义查询与数据操作</td><td>AI检索执行</td></tr>
+      <tr><td><strong>+1目标评估</strong></td><td>任务与业务效果指标</td><td>迭代优化与效果追踪</td></tr>
+    </table>
+    <blockquote>设计理念：分层解耦，按需组合——并非所有场景都需七个规范同时启用，而是根据业务需求选择性激活。<div class="quote-author">—— 第5章方法论</div></blockquote>
+  </div>
+</div>
+
+<!-- ====== SLIDE 10: Part 3 Transition ====== -->
+<div class="slide slide-part" data-slide="9">
+  <div class="slide-inner">
+    <div class="part-num">III</div>
+    <h2>落地实施篇</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:16px;">第 6 — 8 章</p>
+    <p class="part-desc">提供本体工程化的完整方法论：从「五环联动」低门槛实施路径、「29句话」知识转化范式，到AI Agent的工程实现与六类核心应用模式。</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 11: Ch6 ====== -->
+<div class="slide" data-slide="10">
+  <div class="slide-inner">
+    <h4>第 6 章</h4>
+    <h2>本体建模工程化方法</h2>
+    <div class="divider"></div>
+    <div class="col-2">
+      <div>
+        <h3>「29句话」知识转化范式</h3>
+        <p>三步走：<strong>①</strong>AI基于显性知识（文档、流程、规则）自动提炼29句核心陈述；<strong>②</strong>业务专家补充隐性知识（经验、判断标准）；<strong>③</strong>三维审核（逻辑正确+描述清晰+内容完备）。将建模从数周缩短至分钟级。</p>
+      </div>
+      <div>
+        <h3>双大模型协同校验</h3>
+        <p>借鉴Code Review理念：一个懂W3C标准的模型负责建模，另一个模型校验优化。再经可视化工具的语法校验和专家内容把关，测试用例最终验证——多重保障确保本体质量。</p>
+      </div>
+    </div>
+    <div class="process-flow">
+      <div class="process-step"><div class="step-icon">点</div><div class="step-label">小切口<br>驱动建模</div></div>
+      <div class="process-arrow">→</div>
+      <div class="process-step"><div class="step-icon">线</div><div class="step-label">领域级<br>语义拉通</div></div>
+      <div class="process-arrow">→</div>
+      <div class="process-step"><div class="step-icon">面</div><div class="step-label">跨领域<br>贯通覆盖</div></div>
+      <div class="process-arrow">→</div>
+      <div class="process-step"><div class="step-icon" style="background:#059669;">∞</div><div class="step-label">存量湖/图谱<br>系统连接</div></div>
+    </div>
+    <p style="text-align:center;font-size:13px;color:var(--color-accent);"><strong>「建用优复」</strong>全生命周期 → 建（构建）→ 用（应用）→ 优（优化）→ 复（复用）</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 12: Ch7 ====== -->
+<div class="slide" data-slide="11">
+  <div class="slide-inner">
+    <h4>第 7 章</h4>
+    <h2>本体增强 AI Agent 工程实现</h2>
+    <div class="divider"></div>
+    <div class="highlight-card"><span class="hl-badge">868人划线</span>「各组件需协同工作，形成『知识–数据–推理–行动』闭环，使AI Agent实现语义理解、上下文感知、自主决策与执行联动。」</div>
+    <div class="col-2">
+      <div>
+        <h3>「最小必要本体」原则</h3>
+        <p>只加载当前任务决策所需的<strong>最小本体单元</strong>。过大本体会导致推理延迟不可接受（毫秒级差异在实时场景可能造成业务损失），且增加维护成本——与企业架构中的「YAGNI」一脉相承。</p>
+      </div>
+      <div>
+        <h3>三种决策转化模式</h3>
+        <p><strong>高确定性</strong> → 全自动执行（如库存补货）；<strong>中等风险</strong> → 半自动+人工确认（如合同审批）；<strong>高风险</strong> → AI建议+人工决策（如重大投资）。分级平衡效率与安全。</p>
+      </div>
+    </div>
+    <div class="highlight-card"><span class="hl-badge">916人划线</span>「实践中，应坚持『最小必要本体』原则，只加载当前任务决策所必需的本体单元。」</div>
+    <div class="highlight-card"><span class="hl-badge">888人划线</span>「AI Agent完成状态理解、风险评估与策略生成后，必须将决策转化为可执行动作，才能真正实现价值闭环。」</div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 13: Ch8 ====== -->
+<div class="slide" data-slide="12">
+  <div class="slide-inner">
+    <h4>第 8 章</h4>
+    <h2>典型应用场景与探索实践</h2>
+    <div class="divider"></div>
+    <div class="card-grid">
+      <div class="card"><div class="card-num">01</div><div class="card-title">智能流程自动化</div><div class="card-desc">本体驱动AI理解流程语义，自动化执行跨系统审批、调度和协同，从「规则固化的代码」升级为「语义驱动的智能编排」。</div></div>
+      <div class="card"><div class="card-num">02</div><div class="card-title">自主数据运营</div><div class="card-desc">数据质量标准和合规规则本体化，AI自动监控、检测异常并触发处理动作，实现数据运营无人值守。</div></div>
+      <div class="card"><div class="card-num">03</div><div class="card-title">多维度智能决策</div><div class="card-desc">本体整合跨域数据（财务、供应链、市场），AI基于统一语义框架综合分析，提供跨维度决策建议。</div></div>
+      <div class="card"><div class="card-num">04</div><div class="card-title">知识发现与检索</div><div class="card-desc">语义增强检索，自然语言问答获取跨系统精确信息，从「搜关键词」迈向「问业务问题」。</div></div>
+      <div class="card"><div class="card-num">05</div><div class="card-title">合规审计自动化</div><div class="card-desc">法规要求本体化编码，AI自动追踪操作合规度，实现实时合规检测与审计轨迹自动生成。</div></div>
+      <div class="card"><div class="card-num">06</div><div class="card-title">智能客户交互</div><div class="card-desc">本体驱动AI理解客户意图的深层语义，提供精准诊断和解决方案，超越简单FAQ匹配。</div></div>
+    </div>
+    <div class="highlight-card"><span class="hl-badge">880人划线</span>「非侵入式『小切口』验证，收缩范围至AI可清晰执行为止，不重构现有业务，单点突破沉淀本体资产，降低落地风险和启动成本。」</div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 14: Part 4 Transition ====== -->
+<div class="slide slide-part" data-slide="13">
+  <div class="slide-inner">
+    <div class="part-num">IV</div>
+    <h2>未来展望篇</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:16px;">第 9 — 10 章</p>
+    <p class="part-desc">展望企业从「人控」迈向「智控」的进化路径，提出本体、区块链与分层治理协同的AI Agent治理框架，描绘以认知驱动为核心的「智能原生企业」新范式。</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 15: Ch9 ====== -->
+<div class="slide" data-slide="14">
+  <div class="slide-inner">
+    <h4>第 9 章</h4>
+    <h2>碳硅协同的智能体治理理念</h2>
+    <div class="divider"></div>
+    <p>当AI Agent成为企业运转的「硅基参与者」时，如何建立既释放效能、又可控的治理框架？本书提出<strong>「碳硅协同」</strong>——人类（碳基）与AI（硅基）之间分工明确、相互制衡的协作关系。</p>
+    <div class="col-2">
+      <div>
+        <h3>按风险分层治理</h3>
+        <p><strong>高风险</strong> → 强化边界约束与过程可信，适度牺牲速度；<strong>中等风险</strong> → AI执行+人工抽检；<strong>低风险</strong> → 最大化AI自治。治理投入与风险匹配，避免「一刀切」。</p>
+      </div>
+      <div>
+        <h3>三位一体技术框架</h3>
+        <p><strong>本体</strong>定义治理规则（什么能做、不能做）；<strong>区块链</strong>记录治理轨迹（不可篡改、全程可审计）；<strong>分层治理</strong>分配权责（不同层级上明确人机分工）。</p>
+      </div>
+    </div>
+    <div class="highlight-card"><span class="hl-badge">892人划线</span>「高风险关键场景：优先强化边界约束与过程可信，确保安全底线不被突破，为此需适度牺牲AI Agent的自主响应速度与灵活性。」</div>
+  </div>
+</div>
+
+<!-- ====== SLIDE 16: Ch10 ====== -->
+<div class="slide" data-slide="15">
+  <div class="slide-inner">
+    <h4>第 10 章</h4>
+    <h2>企业发展新范式：智能原生企业</h2>
+    <div class="divider"></div>
+    <h3>本体模型 = 企业的「逻辑内核与知识契约」</h3>
+    <p>本体定义业务语义、领域公理、流程规则、决策逻辑与合规要求——回答三个元问题：<strong>业务本质是什么？该遵循什么？什么是可信的？</strong>。从「建模工具」升维为「认知基础设施」。</p>
+    <div class="highlight-card"><span class="hl-badge">865人划线</span>「本体模型是企业的『逻辑内核与知识契约』，为AI Agent注入『业务头脑』。」</div>
+    <div class="col-2">
+      <div>
+        <h3>「实践—反思—成长」进化循环</h3>
+        <p>AI在虚拟环境推演验证 → 成熟策略投入真实业务 → 依据实际反馈持续优化。企业组织本身获得学习能力——不再是「人学习然后写代码」，而是「系统自身不断进化」。</p>
+      </div>
+      <div>
+        <h3>前沿方向</h3>
+        <p><strong>多模态本体：</strong>将文本、图像、视频纳入统一语义框架。<strong>世界模型：</strong>构建对物理和社会环境的整体认知。这些方向为读者提供拓展研究的路标。</p>
+      </div>
+    </div>
+    <blockquote>华为继《华为数据之道》之后，跟随时代脚步推出的AI数据之道。深入浅出地详细解读了AI时代下如何打造本体论大模型驱动的新一代AI原生业务流，为传统企业从业者指明了方向。<div class="quote-author">—— 读者「Wudai」★★★★★ 已读完</div></blockquote>
+  </div>
+</div>
+
+<!-- ====== SLIDE 17: Cross Analysis ====== -->
+<div class="slide" data-slide="16">
+  <div class="slide-inner">
+    <h4>行业交叉分析</h4>
+    <h2>书中方法论 vs 市场实践</h2>
+    <div class="divider"></div>
+    <div class="flow-svg">
+      <svg viewBox="0 0 850 160" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+        <rect width="850" height="160" fill="#F8FAFC" rx="8"/>
+        <line x1="60" y1="80" x2="800" y2="80" stroke="#94A3B8" stroke-width="2"/>
+        <circle cx="110" cy="80" r="10" fill="#2563EB"/><text x="110" y="112" text-anchor="middle" fill="#2563EB" font-size="10" font-weight="600">ETL/数仓</text><text x="110" y="125" text-anchor="middle" fill="#64748B" font-size="9">2000s</text>
+        <circle cx="260" cy="80" r="10" fill="#64748B"/><text x="260" y="112" text-anchor="middle" fill="#64748B" font-size="10" font-weight="600">数据湖</text><text x="260" y="125" text-anchor="middle" fill="#64748B" font-size="9">2015</text>
+        <circle cx="410" cy="80" r="10" fill="#64748B"/><text x="410" y="112" text-anchor="middle" fill="#64748B" font-size="10" font-weight="600">数据目录</text><text x="410" y="125" text-anchor="middle" fill="#64748B" font-size="9">2018</text>
+        <circle cx="560" cy="80" r="10" fill="#059669"/><text x="560" y="112" text-anchor="middle" fill="#059669" font-size="10" font-weight="600">Data Mesh</text><text x="560" y="125" text-anchor="middle" fill="#64748B" font-size="9">2021</text>
+        <circle cx="710" cy="80" r="14" fill="#2563EB" stroke="#059669" stroke-width="2"/><text x="710" y="112" text-anchor="middle" fill="#2563EB" font-size="10" font-weight="700">本体驱动AI</text><text x="710" y="125" text-anchor="middle" fill="#059669" font-size="9" font-weight="600">2024+</text>
+        <text x="110" y="60" text-anchor="middle" fill="#64748B" font-size="9">结构化</text>
+        <text x="260" y="60" text-anchor="middle" fill="#64748B" font-size="9">非结构化</text>
+        <text x="410" y="60" text-anchor="middle" fill="#64748B" font-size="9">元数据驱动</text>
+        <text x="560" y="60" text-anchor="middle" fill="#64748B" font-size="9">领域驱动</text>
+        <text x="710" y="60" text-anchor="middle" fill="#2563EB" font-size="9" font-weight="600">语义驱动</text>
+      </svg>
+    </div>
+    <table class="compare-table" style="font-size:12px;">
+      <tr><th>产品</th><th>核心方法</th><th>本体深度</th><th>与本书对齐度</th></tr>
+      <tr><td><strong>Databricks Unity Catalog</strong></td><td>Lakehouse统一治理</td><td>标签层，弱语义</td><td>🟡 中等</td></tr>
+      <tr><td><strong>Collibra</strong></td><td>数据智能云</td><td>语义映射+术语表</td><td>🟢 较高</td></tr>
+      <tr><td><strong>Alation</strong></td><td>数据目录+协作</td><td>无形式化本体</td><td>🟡 中等</td></tr>
+      <tr><td><strong>Google Dataplex</strong></td><td>智能数据织物</td><td>标签和策略</td><td>🟡 中等</td></tr>
+      <tr><td><strong>AWS Glue</strong></td><td>无服务器集成</td><td>缺乏语义层</td><td>🔴 较低</td></tr>
+      <tr style="background:#DBEAFE;"><td><strong>本书方法论</strong></td><td><strong>业务本体核心</strong></td><td><strong>W3C全栈语义</strong></td><td><strong>🟢 基准参照</strong></td></tr>
+    </table>
+    <p style="font-size:13px;"><strong>核心判断：</strong>本书理念领先市场 2-3 年——多数产品仍停留在「元数据管理」层面，尚未触及「语义推理」深度。书中「五环联动」「点线面」的低门槛渐进策略与 Collibra、Atlan 等产品的推广路径高度一致，验证了方法论在实践层面的可行性。</p>
+  </div>
+</div>
+
+<!-- ====== SLIDE 18: Summary ====== -->
+<div class="slide" data-slide="17">
+  <div class="slide-inner">
+    <h4>总结提炼</h4>
+    <h2>从「管好数据」到「让数据生智」</h2>
+    <div class="divider"></div>
+    <div class="card-grid">
+      <div class="card"><div class="card-num">01</div><div class="card-title">时代诊断</div><div class="card-desc">数据消费者从「人」变为「机器」，传统治理出现「语义缺口」，必须转向面向AI推理的新范式。</div></div>
+      <div class="card"><div class="card-num">02</div><div class="card-title">理论创新</div><div class="card-desc">「事实-事理-行动」模型将本体从知识描述升级为决策驱动引擎，融合联结主义与符号主义。</div></div>
+      <div class="card"><div class="card-num">03</div><div class="card-title">工程方法</div><div class="card-desc">「7+1」规范 +「29句话」+ 五环联动 + 点线面策略，建模从数周压缩至分钟级。</div></div>
+      <div class="card"><div class="card-num">04</div><div class="card-title">AI Agent</div><div class="card-desc">知识-数据-推理-行动闭环，「最小必要本体」原则，三种差异化决策模式。</div></div>
+      <div class="card"><div class="card-num">05</div><div class="card-title">治理哲学</div><div class="card-desc">碳硅协同分层治理，本体+区块链+分层三位一体，为AI「负责任自治」提供制度保障。</div></div>
+      <div class="card"><div class="card-num">06</div><div class="card-title">未来愿景</div><div class="card-desc">「智能原生企业」：本体是逻辑内核，「实践-反思-成长」的自主进化循环。</div></div>
+    </div>
+    <blockquote style="margin-top:20px;">
+      <strong>全书核心主张：</strong>本体不是又一个技术流行词，它是智能时代的「认知基础设施」。当AI Agent成为业务新主体时，只有将业务知识系统性地转化为机器可理解、可推理、可执行的语义模型的企业，才能真正打通从「管好数据」到「用好数据」再到「让数据生智」的完整价值链路。
+      <div class="quote-author">—— 全书精读总结</div>
+    </blockquote>
+  </div>
+</div>
+
+</div><!-- /slide-container -->
+
+<!-- ═══════ Bottom Navigation Bar ═══════ -->
+<div id="nav-bar">
+  <button id="btn-prev" onclick="goTo(currentSlide - 1)">← 上一页</button>
+  <div id="dots"></div>
+  <span id="page-indicator">1 / 18</span>
+  <button id="btn-next" onclick="goTo(currentSlide + 1)">下一页 →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+let currentSlide = 0;
+
+function goTo(idx) {
+  if (idx < 0 || idx >= totalSlides) return;
+  slides[currentSlide].classList.remove('active');
+  slides[idx].classList.add('active');
+  currentSlide = idx;
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('page-indicator').textContent = `${currentSlide + 1} / ${totalSlides}`;
+  document.getElementById('btn-prev').disabled = currentSlide === 0;
+  document.getElementById('btn-next').disabled = currentSlide === totalSlides - 1;
+  // Dots
+  const dots = document.querySelectorAll('#dots .dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+}
+
+// Build dots
+const dotsContainer = document.getElementById('dots');
+for (let i = 0; i < totalSlides; i++) {
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  if (i === 0) dot.classList.add('active');
+  dot.onclick = () => goTo(i);
+  dotsContainer.appendChild(dot);
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    goTo(currentSlide + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    goTo(currentSlide - 1);
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    goTo(0);
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    goTo(totalSlides - 1);
+  }
+});
+
+// Touch swipe
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 60) {
+    if (diff > 0) goTo(currentSlide + 1);
+    else goTo(currentSlide - 1);
+  }
+});
+
+// Init
+updateUI();
+</script>
+
+</body>
+</html>
